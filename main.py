@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse, RedirectResponse
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 
 from admin.routes import router as admin_router
 from auth.mcp_auth import validate_mcp_auth
@@ -16,7 +17,20 @@ async def lifespan(app: FastAPI):
     yield
 
 
-mcp = FastMCP("xhunta-wordpress-mcp")
+mcp = FastMCP(
+    "xhunta-wordpress-mcp",
+    transport_security=TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=[
+            "wordpress-mcp.fastapicloud.dev",
+            "wordpress-mcp.fastapicloud.dev:*",
+        ],
+        allowed_origins=[
+            "https://wordpress-mcp.fastapicloud.dev",
+            "https://localhost:8000",
+        ],
+    ),
+)
 register_all_tools(mcp)
 
 app = FastAPI(
