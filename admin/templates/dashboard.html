@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block title %}Dashboard — Xhunta MCP{% endblock %}{% block content %}
+<h1>Dashboard</h1><p class="muted">Control plane for AI clients such as Copilot, Gemini, Claude and Cursor.</p>
+<div class="grid">
+<div class="stat">Active site<strong>{{ site.name if site else 'Not configured' }}</strong><small>{{ site.base_url if site else 'Add a WordPress site' }}</small></div>
+<div class="stat">Configured sites<strong>{{ sites|length }}</strong><small>Switch sites from WordPress Sites</small></div>
+<div class="stat">Environment<strong>{{ 'Production' if True else '' }}</strong><small>Protect this dashboard and MCP endpoint</small></div>
+</div>
+<div class="card"><h2>Recommended workflow</h2><ol><li>Configure your WordPress site and credentials.</li><li>Test the connection.</li><li>Activate the site you want AI clients to edit.</li><li>Connect the MCP URL to Copilot, Gemini, Claude or Cursor.</li><li>Ask the agent to inspect before making changes.</li></ol></div>
+{% endblock %}

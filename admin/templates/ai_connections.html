@@ -1,0 +1,2182 @@
+{% extends "base.html" %}
+
+{% block title %}AI Connections — Xhunta MCP{% endblock %}
+
+{% block content %}
+
+<style>
+    .mcp-page {
+        max-width: 1180px;
+        margin: 0 auto;
+    }
+
+    .mcp-hero {
+        margin-bottom: 24px;
+    }
+
+    .mcp-hero h1 {
+        margin-bottom: 6px;
+    }
+
+    .mcp-hero p {
+        margin: 0;
+        max-width: 760px;
+    }
+
+    .mcp-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 11px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .mcp-status.online {
+        background: #ecfdf5;
+        color: #047857;
+        border: 1px solid #a7f3d0;
+    }
+
+    .mcp-status.offline {
+        background: #fef2f2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+    }
+
+    .mcp-status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .mcp-endpoint-row {
+        display: flex;
+        gap: 10px;
+        margin-top: 8px;
+    }
+
+    .mcp-endpoint-row input {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .mcp-security {
+        margin-top: 18px;
+        padding: 15px 17px;
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 10px;
+    }
+
+    .mcp-security-title {
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .mcp-toolbar {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .mcp-search {
+        flex: 1;
+        min-width: 240px;
+    }
+
+    .mcp-filter {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .mcp-filter button {
+        padding: 8px 13px;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        color: #374151;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .mcp-filter button:hover {
+        border-color: #9ca3af;
+    }
+
+    .mcp-filter button.active {
+        background: #111827;
+        color: #fff;
+        border-color: #111827;
+    }
+
+    .client-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 20px;
+    }
+
+    .client-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        min-height: 245px;
+        padding: 20px;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        background: #fff;
+        transition:
+            transform .15s ease,
+            box-shadow .15s ease,
+            border-color .15s ease;
+    }
+
+    .client-card:hover {
+        transform: translateY(-2px);
+        border-color: #d1d5db;
+        box-shadow: 0 8px 24px rgba(17, 24, 39, .07);
+    }
+
+    .client-card.hidden {
+        display: none;
+    }
+
+    .client-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .client-icon {
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        border-radius: 10px;
+        background: #f3f4f6;
+        color: #111827;
+        font-size: 17px;
+        font-weight: 800;
+        flex-shrink: 0;
+    }
+
+    .client-name {
+        margin: 0;
+        font-size: 17px;
+    }
+
+    .client-type {
+        margin-top: 3px;
+        color: #6b7280;
+        font-size: 12px;
+    }
+
+    .client-description {
+        margin: 16px 0;
+        color: #6b7280;
+        font-size: 14px;
+        line-height: 1.6;
+        flex: 1;
+    }
+
+    .client-tags {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+    }
+
+    .client-tag {
+        padding: 4px 8px;
+        border-radius: 6px;
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        color: #6b7280;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .client-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .client-actions button {
+        flex: 1;
+    }
+
+    .config-panel {
+        display: none;
+        margin-top: 24px;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        background: #fff;
+    }
+
+    .config-panel.visible {
+        display: block;
+    }
+
+    .config-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 20px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .config-header h2 {
+        margin: 0 0 4px;
+    }
+
+    .config-content {
+        padding: 20px;
+    }
+
+    .config-meta {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+    }
+
+    .config-meta span {
+        padding: 5px 9px;
+        border-radius: 6px;
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        color: #6b7280;
+        font-size: 12px;
+    }
+
+    .config-code {
+        width: 100%;
+        min-height: 310px;
+        box-sizing: border-box;
+        padding: 17px;
+        border: 1px solid #374151;
+        border-radius: 9px;
+        background: #111827;
+        color: #f9fafb;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 13px;
+        line-height: 1.65;
+        resize: vertical;
+    }
+
+    .config-actions {
+        display: flex;
+        gap: 9px;
+        margin-top: 12px;
+        flex-wrap: wrap;
+    }
+
+    .instructions {
+        margin-top: 22px;
+        padding: 18px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        background: #f8fafc;
+    }
+
+    .instructions h3 {
+        margin-top: 0;
+    }
+
+    .instructions ol {
+        margin-bottom: 0;
+        padding-left: 22px;
+    }
+
+    .instructions li {
+        margin-bottom: 8px;
+        line-height: 1.6;
+    }
+
+    .token-note {
+        margin-top: 14px;
+        padding: 12px 14px;
+        border-radius: 8px;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+        font-size: 13px;
+    }
+
+    .test-section {
+        margin-top: 24px;
+    }
+
+    .test-box {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        background: #f8fafc;
+    }
+
+    .test-result {
+        margin-top: 12px;
+        padding: 12px 14px;
+        border-radius: 8px;
+        display: none;
+        font-size: 13px;
+    }
+
+    .test-result.success {
+        display: block;
+        background: #ecfdf5;
+        color: #047857;
+        border: 1px solid #a7f3d0;
+    }
+
+    .test-result.warning {
+        display: block;
+        background: #fffbeb;
+        color: #92400e;
+        border: 1px solid #fde68a;
+    }
+
+    .test-result.error {
+        display: block;
+        background: #fef2f2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+    }
+
+    .empty-results {
+        display: none;
+        padding: 35px 20px;
+        text-align: center;
+        color: #6b7280;
+        border: 1px dashed #d1d5db;
+        border-radius: 10px;
+        margin-top: 20px;
+    }
+
+    @media (max-width: 900px) {
+        .client-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 640px) {
+        .client-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .mcp-endpoint-row,
+        .test-box {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .config-header {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="mcp-page">
+
+
+<!-- PAGE HEADER -->
+
+<div class="mcp-hero">
+
+    <div
+        class="row"
+        style="justify-content:space-between;align-items:flex-start;gap:20px"
+    >
+
+        <div>
+
+            <h1>AI Connections</h1>
+
+            <p class="muted">
+                Connect your favorite AI coding assistants and agents
+                to the Xhunta WordPress MCP server.
+            </p>
+
+        </div>
+
+
+        {% if token_configured %}
+
+            <span class="mcp-status online">
+                <span class="mcp-status-dot"></span>
+                Authentication Enabled
+            </span>
+
+        {% else %}
+
+            <span class="mcp-status offline">
+                <span class="mcp-status-dot"></span>
+                Authentication Not Configured
+            </span>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- MCP SERVER -->
+
+<div class="card">
+
+    <div>
+
+        <h2>MCP Server</h2>
+
+        <p class="muted">
+            This is the SSE endpoint your AI clients use to
+            communicate with the active WordPress installation.
+        </p>
+
+    </div>
+
+
+    <div style="margin-top:18px">
+
+        <label for="mcpEndpoint">
+            <strong>MCP SSE Endpoint</strong>
+        </label>
+
+        <div class="mcp-endpoint-row">
+
+            <input
+                id="mcpEndpoint"
+                type="text"
+                value="{{ mcp_endpoint }}"
+                readonly
+            >
+
+            <button
+                type="button"
+                class="secondary"
+                onclick="copyText('mcpEndpoint', this)"
+            >
+                Copy
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div class="mcp-security">
+
+        <div class="mcp-security-title">
+            Security
+        </div>
+
+        <div class="muted">
+            WordPress and WooCommerce credentials remain server-side.
+            AI clients authenticate with the Xhunta MCP token.
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- CLIENTS -->
+
+<div class="card">
+
+    <div>
+
+        <h2>AI Clients</h2>
+
+        <p class="muted">
+            Select an AI client to generate its MCP configuration
+            and view client-specific setup instructions.
+        </p>
+
+    </div>
+
+
+    <div class="mcp-toolbar">
+
+        <input
+            id="clientSearch"
+            class="mcp-search"
+            type="search"
+            placeholder="Search AI clients..."
+            autocomplete="off"
+        >
+
+
+        <div class="mcp-filter">
+
+            <button
+                type="button"
+                class="active"
+                data-filter="all"
+                onclick="filterClients('all', this)"
+            >
+                All
+            </button>
+
+            <button
+                type="button"
+                data-filter="cli"
+                onclick="filterClients('cli', this)"
+            >
+                CLI
+            </button>
+
+            <button
+                type="button"
+                data-filter="editor"
+                onclick="filterClients('editor', this)"
+            >
+                Editors
+            </button>
+
+            <button
+                type="button"
+                data-filter="desktop"
+                onclick="filterClients('desktop', this)"
+            >
+                Desktop
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div id="clientGrid" class="client-grid">
+
+
+        <!-- GEMINI -->
+
+        <div
+            class="client-card"
+            data-name="Gemini CLI"
+            data-category="cli"
+        >
+
+            <div class="client-header">
+
+                <div>
+
+                    <h3 class="client-name">
+                        Gemini CLI
+                    </h3>
+
+                    <div class="client-type">
+                        Google AI terminal agent
+                    </div>
+
+                </div>
+
+                <div class="client-icon">
+                    G
+                </div>
+
+            </div>
+
+
+            <p class="client-description">
+                Use Gemini CLI from your terminal with access
+                to Xhunta WordPress MCP tools.
+            </p>
+
+
+            <div class="client-tags">
+
+                <span class="client-tag">CLI</span>
+                <span class="client-tag">JSON</span>
+                <span class="client-tag">SSE</span>
+
+            </div>
+
+
+            <div class="client-actions">
+
+                <button
+                    type="button"
+                    onclick="showConfig('gemini')"
+                >
+                    Configure
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- VS CODE / COPILOT -->
+
+        <div
+            class="client-card"
+            data-name="VS Code GitHub Copilot Visual Studio Code"
+            data-category="editor"
+        >
+
+            <div class="client-header">
+
+                <div>
+
+                    <h3 class="client-name">
+                        VS Code / Copilot
+                    </h3>
+
+                    <div class="client-type">
+                        Visual Studio Code
+                    </div>
+
+                </div>
+
+                <div class="client-icon">
+                    VS
+                </div>
+
+            </div>
+
+
+            <p class="client-description">
+                Connect GitHub Copilot and VS Code directly
+                to the Xhunta SSE MCP server.
+            </p>
+
+
+            <div class="client-tags">
+
+                <span class="client-tag">Editor</span>
+                <span class="client-tag">Copilot</span>
+                <span class="client-tag">SSE</span>
+
+            </div>
+
+
+            <div class="client-actions">
+
+                <button
+                    type="button"
+                    onclick="showConfig('vscode')"
+                >
+                    Configure
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- CURSOR -->
+
+        <div
+            class="client-card"
+            data-name="Cursor"
+            data-category="editor"
+        >
+
+            <div class="client-header">
+
+                <div>
+
+                    <h3 class="client-name">
+                        Cursor
+                    </h3>
+
+                    <div class="client-type">
+                        AI code editor
+                    </div>
+
+                </div>
+
+                <div class="client-icon">
+                    C
+                </div>
+
+            </div>
+
+
+            <p class="client-description">
+                Give Cursor access to Xhunta WordPress tools
+                through its MCP configuration.
+            </p>
+
+
+            <div class="client-tags">
+
+                <span class="client-tag">Editor</span>
+                <span class="client-tag">MCP</span>
+                <span class="client-tag">SSE</span>
+
+            </div>
+
+
+            <div class="client-actions">
+
+                <button
+                    type="button"
+                    onclick="showConfig('cursor')"
+                >
+                    Configure
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- CLAUDE -->
+
+        <div
+            class="client-card"
+            data-name="Claude Claude Desktop"
+            data-category="desktop"
+        >
+
+            <div class="client-header">
+
+                <div>
+
+                    <h3 class="client-name">
+                        Claude Desktop
+                    </h3>
+
+                    <div class="client-type">
+                        Anthropic desktop app
+                    </div>
+
+                </div>
+
+                <div class="client-icon">
+                    AI
+                </div>
+
+            </div>
+
+
+            <p class="client-description">
+                Connect Claude Desktop to Xhunta through
+                the MCP SSE endpoint.
+            </p>
+
+
+            <div class="client-tags">
+
+                <span class="client-tag">Desktop</span>
+                <span class="client-tag">SSE</span>
+                <span class="client-tag">mcp-remote</span>
+
+            </div>
+
+
+            <div class="client-actions">
+
+                <button
+                    type="button"
+                    onclick="showConfig('claude')"
+                >
+                    Configure
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- WINDSURF -->
+
+        <div
+            class="client-card"
+            data-name="Windsurf"
+            data-category="editor"
+        >
+
+            <div class="client-header">
+
+                <div>
+
+                    <h3 class="client-name">
+                        Windsurf
+                    </h3>
+
+                    <div class="client-type">
+                        AI development environment
+                    </div>
+
+                </div>
+
+                <div class="client-icon">
+                    W
+                </div>
+
+            </div>
+
+
+            <p class="client-description">
+                Configure Windsurf Cascade to use
+                Xhunta WordPress MCP tools.
+            </p>
+
+
+            <div class="client-tags">
+
+                <span class="client-tag">Editor</span>
+                <span class="client-tag">Cascade</span>
+                <span class="client-tag">SSE</span>
+
+            </div>
+
+
+            <div class="client-actions">
+
+                <button
+                    type="button"
+                    onclick="showConfig('windsurf')"
+                >
+                    Configure
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- CLINE -->
+
+        <div
+            class="client-card"
+            data-name="Cline"
+            data-category="editor"
+        >
+
+            <div class="client-header">
+
+                <div>
+
+                    <h3 class="client-name">
+                        Cline
+                    </h3>
+
+                    <div class="client-type">
+                        AI coding agent
+                    </div>
+
+                </div>
+
+                <div class="client-icon">
+                    CL
+                </div>
+
+            </div>
+
+
+            <p class="client-description">
+                Add Xhunta as an MCP server for Cline's
+                autonomous coding workflow.
+            </p>
+
+
+            <div class="client-tags">
+
+                <span class="client-tag">Editor</span>
+                <span class="client-tag">Agent</span>
+                <span class="client-tag">SSE</span>
+
+            </div>
+
+
+            <div class="client-actions">
+
+                <button
+                    type="button"
+                    onclick="showConfig('cline')"
+                >
+                    Configure
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- ROO CODE -->
+
+        <div
+            class="client-card"
+            data-name="Roo Code"
+            data-category="editor"
+        >
+
+            <div class="client-header">
+
+                <div>
+
+                    <h3 class="client-name">
+                        Roo Code
+                    </h3>
+
+                    <div class="client-type">
+                        AI coding agent
+                    </div>
+
+                </div>
+
+                <div class="client-icon">
+                    RC
+                </div>
+
+            </div>
+
+
+            <p class="client-description">
+                Connect Roo Code to your Xhunta WordPress
+                MCP server.
+            </p>
+
+
+            <div class="client-tags">
+
+                <span class="client-tag">Editor</span>
+                <span class="client-tag">Agent</span>
+                <span class="client-tag">SSE</span>
+
+            </div>
+
+
+            <div class="client-actions">
+
+                <button
+                    type="button"
+                    onclick="showConfig('roo')"
+                >
+                    Configure
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- CODEX -->
+
+        <div
+            class="client-card"
+            data-name="OpenAI Codex CLI Codex"
+            data-category="cli"
+        >
+
+            <div class="client-header">
+
+                <div>
+
+                    <h3 class="client-name">
+                        Codex CLI
+                    </h3>
+
+                    <div class="client-type">
+                        OpenAI coding agent
+                    </div>
+
+                </div>
+
+                <div class="client-icon">
+                    CX
+                </div>
+
+            </div>
+
+
+            <p class="client-description">
+                Configure Codex CLI to connect to the
+                Xhunta WordPress MCP server.
+            </p>
+
+
+            <div class="client-tags">
+
+                <span class="client-tag">CLI</span>
+                <span class="client-tag">Agent</span>
+                <span class="client-tag">TOML</span>
+
+            </div>
+
+
+            <div class="client-actions">
+
+                <button
+                    type="button"
+                    onclick="showConfig('codex')"
+                >
+                    Configure
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div id="emptyResults" class="empty-results">
+        No AI clients match your search.
+    </div>
+
+
+    <!-- GENERATED CONFIGURATION -->
+
+    <div id="configWrapper" class="config-panel">
+
+        <div class="config-header">
+
+            <div>
+
+                <h2 id="configTitle">
+                    Configuration
+                </h2>
+
+                <p
+                    id="configDescription"
+                    class="muted"
+                    style="margin:0"
+                >
+                    Generated MCP configuration.
+                </p>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="secondary"
+                onclick="closeConfig()"
+            >
+                Close
+            </button>
+
+        </div>
+
+
+        <div class="config-content">
+
+            <div id="configMeta" class="config-meta"></div>
+
+
+            <textarea
+                id="configOutput"
+                class="config-code"
+                readonly
+            ></textarea>
+
+
+            <div class="config-actions">
+
+                <button
+                    type="button"
+                    onclick="copyConfig(this)"
+                >
+                    Copy Configuration
+                </button>
+
+                <button
+                    type="button"
+                    class="secondary"
+                    onclick="downloadConfig()"
+                >
+                    Save Configuration
+                </button>
+
+            </div>
+
+
+            <div class="instructions">
+
+                <h3>
+                    Setup Instructions
+                </h3>
+
+                <ol id="instructionList"></ol>
+
+
+                <div class="token-note">
+
+                    <strong>Security:</strong>
+
+                    Replace
+                    <code>MCP_AUTH_TOKEN</code>
+                    with your actual 64-character MCP token.
+
+                    Never commit the token to Git or expose it
+                    publicly.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- CONNECTION TEST -->
+
+<div class="card test-section">
+
+    <div>
+
+        <h2>
+            Connection Test
+        </h2>
+
+        <p class="muted">
+            Check whether the Xhunta MCP SSE endpoint is reachable.
+        </p>
+
+    </div>
+
+
+    <div class="test-box">
+
+        <div>
+
+            <strong>
+                MCP SSE endpoint
+            </strong>
+
+            <div
+                class="muted"
+                style="font-size:13px;margin-top:3px"
+            >
+                {{ mcp_endpoint }}
+            </div>
+
+        </div>
+
+
+        <button
+            type="button"
+            onclick="testConnection(this)"
+        >
+            Test Endpoint
+        </button>
+
+    </div>
+
+
+    <div
+        id="testResult"
+        class="test-result"
+    ></div>
+
+</div>
+ 
+
+</div>
+
+<script>
+
+const endpoint = {{ mcp_endpoint | tojson }};
+
+let activeClient = null;
+let activeConfig = null;
+
+
+const clientData = {
+
+    gemini: {
+
+        title: "Gemini CLI — settings.json",
+
+        description:
+            "SSE configuration for Gemini CLI.",
+
+        format: "JSON",
+
+        category: "CLI",
+
+        filename: "settings.json",
+
+        config: {
+
+            mcpServers: {
+
+                "xhunta-wordpress": {
+
+                    url: endpoint,
+
+                    type: "sse",
+
+                    headers: {
+
+                        "Authorization":
+                            "Bearer MCP_AUTH_TOKEN"
+
+                    },
+
+                    timeout: 600000,
+
+                    trust: false
+
+                }
+
+            }
+
+        },
+
+        instructions: [
+
+            "Open your Gemini CLI MCP configuration.",
+
+            "Add the generated Xhunta MCP server configuration.",
+
+            "Replace MCP_AUTH_TOKEN with your actual 64-character token.",
+
+            "Save the configuration.",
+
+            "Restart Gemini CLI.",
+
+            "Ask Gemini to list the available Xhunta MCP tools."
+
+        ]
+
+    },
+
+
+    /*
+     * IMPORTANT:
+     *
+     * This configuration has been aligned with the
+     * Xhunta server that was successfully tested:
+     *
+     * /mcp/sse
+     * type: sse
+     * Authorization: Bearer <64-character-token>
+     *
+     */
+
+    vscode: {
+
+        title:
+            "VS Code / GitHub Copilot — mcp.json",
+
+        description:
+            "SSE configuration for VS Code and GitHub Copilot.",
+
+        format: "JSON",
+
+        category: "Editor",
+
+        filename: "mcp.json",
+
+        config: {
+
+            servers: {
+
+                "xhunta-wordpress": {
+
+                    type: "sse",
+
+                    url: endpoint,
+
+                    headers: {
+
+                        "Authorization":
+                            "Bearer MCP_AUTH_TOKEN"
+
+                    }
+
+                }
+
+            }
+
+        },
+
+        instructions: [
+
+            "Open your VS Code MCP configuration file.",
+
+            "Add the generated xhunta-wordpress server.",
+
+            "Make sure the transport type remains sse.",
+
+            "Make sure the URL ends with /mcp/sse.",
+
+            "Replace MCP_AUTH_TOKEN with your actual 64-character token.",
+
+            "Save the configuration.",
+
+            "Reload VS Code.",
+
+            "Open GitHub Copilot Chat and check the MCP tools."
+
+        ]
+
+    },
+
+
+    cursor: {
+
+        title:
+            "Cursor — MCP configuration",
+
+        description:
+            "SSE configuration for Cursor.",
+
+        format: "JSON",
+
+        category: "Editor",
+
+        filename: "mcp.json",
+
+        config: {
+
+            mcpServers: {
+
+                "xhunta-wordpress": {
+
+                    url: endpoint,
+
+                    headers: {
+
+                        "Authorization":
+                            "Bearer MCP_AUTH_TOKEN"
+
+                    }
+
+                }
+
+            }
+
+        },
+
+        instructions: [
+
+            "Open Cursor Settings.",
+
+            "Open the MCP configuration section.",
+
+            "Add the generated Xhunta MCP server.",
+
+            "Replace MCP_AUTH_TOKEN with your actual token.",
+
+            "Save the configuration.",
+
+            "Restart Cursor if necessary."
+
+        ]
+
+    },
+
+
+    claude: {
+
+        title:
+            "Claude Desktop — claude_desktop_config.json",
+
+        description:
+            "Claude Desktop configuration using mcp-remote.",
+
+        format: "JSON",
+
+        category: "Desktop",
+
+        filename:
+            "claude_desktop_config.json",
+
+        config: {
+
+            mcpServers: {
+
+                "xhunta-wordpress": {
+
+                    command: "npx",
+
+                    args: [
+
+                        "-y",
+
+                        "mcp-remote",
+
+                        endpoint,
+
+                        "--header",
+
+                        "Authorization: Bearer MCP_AUTH_TOKEN"
+
+                    ]
+
+                }
+
+            }
+
+        },
+
+        instructions: [
+
+            "Make sure Node.js and npx are installed.",
+
+            "Open Claude Desktop's configuration file.",
+
+            "Add the generated Xhunta MCP server.",
+
+            "Replace MCP_AUTH_TOKEN with your actual token.",
+
+            "Save the configuration.",
+
+            "Restart Claude Desktop."
+
+        ]
+
+    },
+
+
+    windsurf: {
+
+        title:
+            "Windsurf — MCP configuration",
+
+        description:
+            "MCP configuration for Windsurf Cascade.",
+
+        format: "JSON",
+
+        category: "Editor",
+
+        filename:
+            "mcp_config.json",
+
+        config: {
+
+            mcpServers: {
+
+                "xhunta-wordpress": {
+
+                    serverUrl: endpoint,
+
+                    headers: {
+
+                        "Authorization":
+                            "Bearer MCP_AUTH_TOKEN"
+
+                    }
+
+                }
+
+            }
+
+        },
+
+        instructions: [
+
+            "Open Windsurf's MCP settings.",
+
+            "Add a new MCP server.",
+
+            "Use the generated Xhunta configuration.",
+
+            "Replace MCP_AUTH_TOKEN with your actual token.",
+
+            "Save the configuration.",
+
+            "Restart or refresh Cascade."
+
+        ]
+
+    },
+
+
+    cline: {
+
+        title:
+            "Cline — MCP configuration",
+
+        description:
+            "MCP configuration for the Cline coding agent.",
+
+        format: "JSON",
+
+        category: "Editor",
+
+        filename:
+            "cline_mcp_settings.json",
+
+        config: {
+
+            mcpServers: {
+
+                "xhunta-wordpress": {
+
+                    url: endpoint,
+
+                    headers: {
+
+                        "Authorization":
+                            "Bearer MCP_AUTH_TOKEN"
+
+                    }
+
+                }
+
+            }
+
+        },
+
+        instructions: [
+
+            "Open Cline's MCP Servers settings.",
+
+            "Add a custom MCP server.",
+
+            "Use the generated Xhunta configuration.",
+
+            "Replace MCP_AUTH_TOKEN with your actual token.",
+
+            "Save and enable the server."
+
+        ]
+
+    },
+
+
+    roo: {
+
+        title:
+            "Roo Code — MCP configuration",
+
+        description:
+            "MCP configuration for Roo Code.",
+
+        format: "JSON",
+
+        category: "Editor",
+
+        filename:
+            "roo_mcp_settings.json",
+
+        config: {
+
+            mcpServers: {
+
+                "xhunta-wordpress": {
+
+                    url: endpoint,
+
+                    headers: {
+
+                        "Authorization":
+                            "Bearer MCP_AUTH_TOKEN"
+
+                    }
+
+                }
+
+            }
+
+        },
+
+        instructions: [
+
+            "Open Roo Code's MCP configuration.",
+
+            "Add a new MCP server.",
+
+            "Paste the generated Xhunta configuration.",
+
+            "Replace MCP_AUTH_TOKEN with your actual token.",
+
+            "Save and enable the server."
+
+        ]
+
+    },
+
+
+    codex: {
+
+        title:
+            "OpenAI Codex CLI — config.toml",
+
+        description:
+            "MCP configuration for Codex CLI.",
+
+        format: "TOML",
+
+        category: "CLI",
+
+        filename:
+            "config.toml",
+
+        rawConfig:
+`[mcp_servers.xhunta-wordpress]
+url = "${endpoint}"
+
+[mcp_servers.xhunta-wordpress.headers]
+Authorization = "Bearer MCP_AUTH_TOKEN"`,
+
+        instructions: [
+
+            "Open your Codex CLI configuration file.",
+
+            "Add the generated Xhunta MCP server.",
+
+            "Replace MCP_AUTH_TOKEN with your actual token.",
+
+            "Save the configuration.",
+
+            "Restart Codex CLI.",
+
+            "Verify that the Xhunta MCP tools are available."
+
+        ]
+
+    }
+
+};
+
+
+function showConfig(client) {
+
+    const data = clientData[client];
+
+    if (!data) {
+        return;
+    }
+
+
+    activeClient = client;
+
+    activeConfig = data;
+
+
+    document
+        .getElementById("configTitle")
+        .innerText = data.title;
+
+
+    document
+        .getElementById("configDescription")
+        .innerText = data.description;
+
+
+    document
+        .getElementById("configMeta")
+        .innerHTML = `
+
+            <span>${escapeHtml(data.category)}</span>
+
+            <span>${escapeHtml(data.format)}</span>
+
+            <span>${escapeHtml(data.filename)}</span>
+
+        `;
+
+
+    let output;
+
+
+    if (data.rawConfig) {
+
+        output = data.rawConfig;
+
+    } else {
+
+        output =
+            JSON.stringify(data.config, null, 2);
+
+    }
+
+
+    document
+        .getElementById("configOutput")
+        .value = output;
+
+
+    const instructionList =
+        document.getElementById(
+            "instructionList"
+        );
+
+
+    instructionList.innerHTML = "";
+
+
+    data.instructions.forEach(function(instruction) {
+
+        const li =
+            document.createElement("li");
+
+        li.textContent = instruction;
+
+        instructionList.appendChild(li);
+
+    });
+
+
+    const wrapper =
+        document.getElementById(
+            "configWrapper"
+        );
+
+
+    wrapper.classList.add("visible");
+
+
+    setTimeout(function() {
+
+        wrapper.scrollIntoView({
+
+            behavior: "smooth",
+
+            block: "start"
+
+        });
+
+    }, 50);
+
+}
+
+
+function closeConfig() {
+
+    document
+        .getElementById("configWrapper")
+        .classList.remove("visible");
+
+
+    activeClient = null;
+
+    activeConfig = null;
+
+}
+
+
+async function copyText(elementId, button) {
+
+    const element =
+        document.getElementById(elementId);
+
+
+    await copyToClipboard(element.value);
+
+
+    showCopyFeedback(button);
+
+}
+
+
+async function copyConfig(button) {
+
+    const output =
+        document.getElementById("configOutput");
+
+
+    await copyToClipboard(output.value);
+
+
+    showCopyFeedback(button);
+
+}
+
+
+async function copyToClipboard(text) {
+
+    if (
+        navigator.clipboard &&
+        window.isSecureContext
+    ) {
+
+        await navigator.clipboard.writeText(text);
+
+        return;
+
+    }
+
+
+    const textarea =
+        document.createElement("textarea");
+
+
+    textarea.value = text;
+
+    textarea.style.position = "fixed";
+
+    textarea.style.opacity = "0";
+
+
+    document.body.appendChild(textarea);
+
+
+    textarea.focus();
+
+    textarea.select();
+
+
+    document.execCommand("copy");
+
+
+    textarea.remove();
+
+}
+
+
+function showCopyFeedback(button) {
+
+    const original =
+        button.innerText;
+
+
+    button.innerText = "Copied";
+
+
+    setTimeout(function() {
+
+        button.innerText = original;
+
+    }, 1500);
+
+}
+
+
+function downloadConfig() {
+
+    if (!activeConfig) {
+        return;
+    }
+
+
+    const content =
+        document.getElementById(
+            "configOutput"
+        ).value;
+
+
+    const blob =
+        new Blob(
+
+            [content],
+
+            {
+                type:
+                    "text/plain;charset=utf-8"
+            }
+
+        );
+
+
+    const url =
+        URL.createObjectURL(blob);
+
+
+    const link =
+        document.createElement("a");
+
+
+    link.href = url;
+
+
+    link.download =
+        activeConfig.filename;
+
+
+    document.body.appendChild(link);
+
+
+    link.click();
+
+
+    link.remove();
+
+
+    URL.revokeObjectURL(url);
+
+}
+
+
+let currentFilter = "all";
+
+
+function filterClients(filter, button) {
+
+    currentFilter = filter;
+
+
+    document
+        .querySelectorAll(
+            ".mcp-filter button"
+        )
+        .forEach(function(item) {
+
+            item.classList.remove(
+                "active"
+            );
+
+        });
+
+
+    button.classList.add("active");
+
+
+    applyClientFilter();
+
+}
+
+
+function applyClientFilter() {
+
+    const search =
+        document
+            .getElementById("clientSearch")
+            .value
+            .trim()
+            .toLowerCase();
+
+
+    const cards =
+        document.querySelectorAll(
+            ".client-card"
+        );
+
+
+    let visible = 0;
+
+
+    cards.forEach(function(card) {
+
+        const name =
+            card.dataset.name
+                .toLowerCase();
+
+
+        const category =
+            card.dataset.category
+                .toLowerCase();
+
+
+        const matchesSearch =
+            !search ||
+            name.includes(search);
+
+
+        const matchesFilter =
+            currentFilter === "all" ||
+            category === currentFilter;
+
+
+        if (
+            matchesSearch &&
+            matchesFilter
+        ) {
+
+            card.classList.remove(
+                "hidden"
+            );
+
+            visible++;
+
+        } else {
+
+            card.classList.add(
+                "hidden"
+            );
+
+        }
+
+    });
+
+
+    document
+        .getElementById(
+            "emptyResults"
+        )
+        .style.display =
+            visible === 0
+                ? "block"
+                : "none";
+
+}
+
+
+document
+    .getElementById("clientSearch")
+    .addEventListener(
+        "input",
+        applyClientFilter
+    );
+
+
+async function testConnection(button) {
+
+    const result =
+        document.getElementById(
+            "testResult"
+        );
+
+
+    const original =
+        button.innerText;
+
+
+    button.disabled = true;
+
+    button.innerText =
+        "Testing...";
+
+
+    result.className =
+        "test-result";
+
+    result.style.display =
+        "none";
+
+
+    try {
+
+        const response =
+            await fetch(endpoint, {
+
+                method: "GET",
+
+                headers: {
+
+                    "Accept":
+                        "text/event-stream"
+
+                }
+
+            });
+
+
+        /*
+         * 200 means the endpoint accepted the
+         * unauthenticated request.
+         *
+         * 401 means the endpoint is reachable
+         * but requires the MCP token.
+         *
+         * 403 means the endpoint is reachable
+         * but access was denied.
+         */
+
+
+        if (response.status === 200) {
+
+            result.className =
+                "test-result success";
+
+            result.innerHTML =
+                "<strong>MCP endpoint is online.</strong> " +
+                "The SSE endpoint returned HTTP 200.";
+
+        }
+
+
+        else if (response.status === 401) {
+
+            result.className =
+                "test-result warning";
+
+            result.innerHTML =
+                "<strong>MCP endpoint is reachable.</strong> " +
+                "Authentication is required. " +
+                "This is expected when testing from the browser without the MCP token.";
+
+        }
+
+
+        else if (response.status === 403) {
+
+            result.className =
+                "test-result error";
+
+            result.innerHTML =
+                "<strong>Access denied.</strong> " +
+                "The MCP endpoint is reachable but rejected the request.";
+
+        }
+
+
+        else {
+
+            result.className =
+                "test-result error";
+
+            result.innerHTML =
+                "<strong>MCP endpoint returned HTTP " +
+                escapeHtml(response.status) +
+                ".</strong>";
+
+        }
+
+    }
+
+
+    catch (error) {
+
+        result.className =
+            "test-result error";
+
+        result.innerHTML =
+            "<strong>MCP endpoint could not be reached.</strong> " +
+            escapeHtml(error.message);
+
+    }
+
+
+    button.disabled = false;
+
+    button.innerText =
+        original;
+
+}
+
+
+function escapeHtml(value) {
+
+    return String(value)
+
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
+
+}
+
+</script>
+
+{% endblock %}

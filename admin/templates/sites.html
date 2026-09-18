@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block title %}Sites — Xhunta MCP{% endblock %}{% block content %}
+<div class="row" style="justify-content:space-between"><div><h1>WordPress Sites</h1><p class="muted">Credentials are stored server-side and are never returned in the site list.</p></div><a class="button" href="/admin/sites/new">+ Add Site</a></div>
+{% if message %}<div class="card {{ 'success' if ok else 'error' }}">{{message}}</div>{% endif %}
+<div class="card"><table><thead><tr><th>Site</th><th>URL</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+{% for s in sites %}<tr><td><strong>{{s.name}}</strong></td><td>{{s.base_url}}</td><td>{% if s.active %}<span class="badge">Active</span>{% else %}<span class="badge off">Inactive</span>{% endif %}</td><td><div class="actions">
+<a class="button secondary" href="/admin/sites/{{s.id}}/edit">Edit</a>
+<form method="post" action="/admin/sites/{{s.id}}/test"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="secondary">Test</button></form>
+{% if not s.active %}<form method="post" action="/admin/sites/{{s.id}}/activate"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button>Activate</button></form>{% endif %}
+<form method="post" action="/admin/sites/{{s.id}}/delete" onsubmit="return confirm('Delete this site profile?')"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="danger">Delete</button></form>
+</div></td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

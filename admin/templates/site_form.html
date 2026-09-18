@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% block title %}Site — Xhunta MCP{% endblock %}{% block content %}
+<h1>{{ 'Edit WordPress Site' if site else 'Add WordPress Site' }}</h1>
+<div class="card"><form method="post" action="/admin/sites/save">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+{% if site %}<input type="hidden" name="site_id" value="{{site.id}}">{% endif %}
+<label>Site name</label><input name="name" required value="{{site.name if site else 'Xhunta'}}">
+<label>WordPress URL</label><input type="url" name="base_url" required placeholder="https://xhunta.com" value="{{site.base_url if site else ''}}">
+<label>WordPress username</label><input name="wp_username" required value="{{site.wp_username if site else ''}}">
+<label>Application Password</label><input type="password" name="wp_app_password" required value="{{site.wp_app_password if site else ''}}" autocomplete="new-password"><small>Use a WordPress Application Password, not the normal login password.</small>
+<hr style="border:0;border-top:1px solid #e5e7eb;margin:22px 0">
+<h2>WooCommerce API (optional)</h2>
+<label>Consumer Key</label><input name="wc_consumer_key" value="{{site.wc_consumer_key if site else ''}}">
+<label>Consumer Secret</label><input type="password" name="wc_consumer_secret" value="{{site.wc_consumer_secret if site else ''}}">
+<div class="actions"><button>Save Site</button><a class="button secondary" href="/admin/sites">Cancel</a></div>
+</form></div>
+{% endblock %}

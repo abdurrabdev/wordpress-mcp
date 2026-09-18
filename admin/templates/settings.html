@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block title %}Settings — Xhunta MCP{% endblock %}{% block content %}
+<h1>Server Settings</h1>
+<div class="card"><p><strong>APP_ENV:</strong> {{settings.APP_ENV}}</p><p><strong>REQUEST_TIMEOUT:</strong> {{settings.REQUEST_TIMEOUT}} seconds</p><p><strong>MAX_UPLOAD_SIZE:</strong> {{settings.MAX_UPLOAD_SIZE}} bytes</p><p><strong>MCP_AUTH_TOKEN:</strong> {% if settings.MCP_AUTH_TOKEN_SET %}<span class="badge">Configured</span>{% else %}<span class="badge off">Not configured</span>{% endif %}</p>
+<p class="muted">For security, these bootstrap environment values are intentionally not editable from the browser. WordPress site profiles are editable under WordPress Sites.</p></div>
+<div class="card"><h2>Security</h2><p>The admin dashboard and MCP endpoint should be protected separately. Keep MCP_AUTH_TOKEN outside the WordPress site profile and never expose WordPress Application Passwords to AI clients.</p></div>
+{% endblock %}

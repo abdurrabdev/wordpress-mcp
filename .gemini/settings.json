@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "xhunta-wordpress": {
+      "url": "http://localhost:8000/mcp/sse",
+      "type": "sse",
+      "headers": {
+        "Authorization": "Bearer MCP_AUTH_TOKEN"
+      },
+      "timeout": 600000,
+      "trust": false
+    }
+  }
+}
